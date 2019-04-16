@@ -1,0 +1,33 @@
+---
+- name: Include role vars
+  include_vars:
+    file: "{{ role_path }}/defaults/main.yml"
+    name: laravel_envs
+
+- name: Create Laravel service
+  k8s:
+    namespace: "{{ namespace }}"
+    state: present
+    definition: "{{ lookup('template', 'templates/service_laravel.yml.j2') | from_yaml }}"
+
+- name: Create Nginx config map
+  k8s:
+    namespace: "{{ namespace }}"
+    state: present
+    force: "{{ laravel_force_replace }}"
+    definition: "{{ lookup('template', item.template ) | from_yaml }}"
+  loop: "{{ laravel_nginx_config_maps }}"
+
+- name: Create Laravel deployment
+  k8s:
+    namespace: "{{ namespace }}"
+    state: present
+    force: "{{ laravel_force_replace }}"
+    definition: "{{ lookup('template', 'templates/deployment_laravel.yml.j2') | from_yaml }}"
+
+- name: Create Laravel ingresses
+  k8s:
+    namespace: "{{ namespace }}"
+    state: present
+    definition: "{{ lookup('template', 'templates/ingress_laravel.yml.j2') | from_yaml }}"
+  loop: "{{ laravel_ingress_hostnames }}"

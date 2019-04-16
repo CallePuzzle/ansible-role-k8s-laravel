@@ -1,0 +1,79 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: laravel
+  name: laravel
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: laravel
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: laravel
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: laravel-fpm
+        securityContext:
+          runAsUser: {{ laravel_user_id }}
+          fsGroup: {{ laravel_group_id }}
+        env:
+        {% for laravel_env in laravel_envs | map('regex_search', '^env_.*') | list %}{% if laravel_env %}- name: {{ laravel_env | regex_replace('^env_(.*)$', '\\1') | upper }}
+          value: '{{ lookup('vars', laravel_env) }}'
+        {% endif %}{% endfor %}image: {{ laravel_registry_uri }}:{{ laravel_registry_tag }}
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 9000
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        volumeMounts:
+          - name: public-files
+            mountPath: /public-files
+        {% if laravel_shared_public_files %}lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "cp -r /app/public/. /public-files/"]
+        {% endif %}terminationMessagePolicy: File
+      - name: laravel-nginx
+        securityContext:
+          runAsUser: {{ laravel_user_id }}
+          fsGroup: {{ laravel_group_id }}
+        env:
+        {% for laravel_env in laravel_envs | map('regex_search', '^env_.*') | list %}{% if laravel_env %}- name: {{ laravel_env | regex_replace('^env_(.*)$', '\\1') | upper }}
+          value: '{{ lookup('vars', laravel_env) }}'
+        {% endif %}{% endfor %}image: openresty/openresty:stretch
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        command: ["/usr/bin/openresty", "-c", "{{ laravel_nginx_root_path }}/nginx.conf"]
+        #command: ["sleep", "infinity"]
+        volumeMounts:
+          - name: public-files
+            mountPath: /app/public
+        {% for laravel_nginx_config_map in laravel_nginx_config_maps %}  - name: {{ laravel_nginx_config_map.name }}
+            mountPath: {{ laravel_nginx_root_path }}{{ laravel_nginx_config_map.file_name }}
+            subPath: {{ laravel_nginx_config_map.file_name }}
+        {% endfor %}terminationMessagePolicy: File
+      volumes:
+      {% for laravel_nginx_config_map in laravel_nginx_config_maps %}  - name: {{ laravel_nginx_config_map.name }}
+          configMap:
+            name: laravel-nginx-{{ laravel_nginx_config_map.name }}
+      {% endfor %}  - name: public-files
+          emptyDir: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

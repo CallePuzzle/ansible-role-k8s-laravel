@@ -1,0 +1,35 @@
+---
+namespace: default
+
+laravel_registry_uri: false
+laravel_registry_tag: latest
+
+laravel_force_replace: false
+
+laravel_nginx_config_maps:
+  - name: fastcgi
+    file_name: fastcgi_params
+    template: templates/configmap_fastcgi_laravel.yml.j2
+
+  - name: mimetypes
+    file_name: mime.types
+    template: templates/configmap_mimetypes_laravel.yml.j2
+
+  - name: nginxconfig
+    file_name: nginx.conf
+    template: templates/configmap_nginx_laravel.yml.j2
+
+laravel_nginx_root_path: /openresty/
+
+laravel_shared_public_files: true
+
+laravel_sites: laravelweb.test
+laravel_ingress_hostnames: "{{ laravel_sites }}"
+
+laravel_user_id: 50000
+laravel_group_id: 50000
+
+env_app_env: prod
+env_app_secret: null
+env_log_level: info
+env_laravel_sites: '{{ laravel_sites | to_json }}'

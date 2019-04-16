@@ -1,0 +1,39 @@
+---
+- name: Converge
+  hosts: 127.0.0.1
+  connection: local
+  gather_facts: false
+
+  vars:
+
+    namespace: molecule-test
+    laravel_registry_uri: php
+    laravel_registry_tag: 7.2-fpm-stretch
+    laravel_sites:
+      - web1.minikube.test
+    env_app_secret: secret
+    laravel_shared_public_files: false
+
+  pre_tasks:
+    - name: Create namespace
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ namespace }}"
+
+  roles:
+    - role: ansible-role-k8s-laravel
+
+  tasks:
+    - name: Get web pod status
+      shell: "kubectl -n {{ namespace }} get pods | grep web | grep Running"
+      retries: 50
+      delay: 10
+      changed_when: false
+      register: pod_status
+      until: pod_status.rc == 0
+      failed_when: false
+      when: false

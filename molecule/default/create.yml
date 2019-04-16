@@ -1,0 +1,16 @@
+---
+- name: Create
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Minikube status
+      command: minikube status
+      register: minikube_status
+      failed_when: false
+
+    - name: Checking if minikube is already
+      fail:
+        msg: Please you must run the minikube before start this test
+      when: minikube_status.rc != 0

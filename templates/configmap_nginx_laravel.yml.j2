@@ -1,0 +1,43 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: laravel-nginx-{{ item.name }}
+data:
+   {{ item.file_name }}: |
+    worker_processes  1;
+    events {
+      worker_connections  1024;
+    }
+    daemon off;
+    pid /tmp/nginx.pid;
+    http {
+      client_body_temp_path {{ laravel_nginx_root_path }} 1 2;
+      proxy_temp_path {{ laravel_nginx_root_path }} 1 2;
+      fastcgi_temp_path {{ laravel_nginx_root_path }} 1 2;
+      uwsgi_temp_path {{ laravel_nginx_root_path }} 1 2;
+      scgi_temp_path {{ laravel_nginx_root_path }} 1 2;
+
+      {% for laravel_site in laravel_sites %}
+      server {
+        listen 8080;
+
+        include       mime.types;
+        default_type  application/octet-stream;
+        # Set nginx to serve files from the shared volume!
+        root /app/public;
+        server_name {{ laravel_site }};
+
+        location / {
+          try_files $uri $uri/ /index.php?$query_string;
+        }
+
+        location ~ \.php$ {
+          include fastcgi_params;
+          fastcgi_param   REQUEST_METHOD  $request_method;
+          fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          fastcgi_pass    127.0.0.1:9000;
+        }
+      }
+      {% endfor %}
+    }

@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: laravel-ingress-{{ item }}
+  namespace: {{ namespace }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: {{ item }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: laravel
+          servicePort: 8080

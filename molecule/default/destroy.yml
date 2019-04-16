@@ -1,0 +1,28 @@
+---
+- name: Destroy
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    - namespace: molecule-test
+
+  tasks:
+    - name: Delete namespace
+      k8s:
+        namespace: "{{ namespace }}"
+        state: absent
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ namespace }}"
+
+    - name: Making sure the namespace is deleted
+      shell: "kubectl get namespaces | grep {{ namespace }}"
+      retries: 30
+      delay: 5
+      changed_when: false
+      register: namespace_status
+      until: namespace_status.rc != 0
+      failed_when: false
