@@ -60,7 +60,6 @@ spec:
         resources: {}
         terminationMessagePath: /dev/termination-log
         command: ["/usr/bin/openresty", "-c", "{{ laravel_nginx_root_path }}/nginx.conf"]
-        #command: ["sleep", "infinity"]
         volumeMounts:
           - name: public-files
             mountPath: /app/public
