@@ -29,7 +29,18 @@ laravel_ingress_hostnames: "{{ laravel_sites }}"
 laravel_user_id: 50000
 laravel_group_id: 50000
 
+laravel_fpm_image_pull_policy: IfNotPresent
+
+laravel_ingress_global_static_ip_name: false
+laravel_ingress_class: nginx
+
+laravel_service_type: ClusterIP
+
 env_app_env: prod
-env_app_secret: null
+env_app_name: Laravel
+env_app_key: null
+env_app_debug: false
+env_app_url: http://localhost
 env_log_level: info
+
 env_laravel_sites: '{{ laravel_sites | to_json }}'

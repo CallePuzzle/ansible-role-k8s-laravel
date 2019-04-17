@@ -1,10 +1,13 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: laravel-ingress-{{ item }}
+  name: laravel-ingress
   namespace: {{ namespace }}
   annotations:
-    kubernetes.io/ingress.class: "nginx"
+    {% if laravel_ingress_global_static_ip_name %}kubernetes.io/ingress.global-static-ip-name: {{ laravel_ingress_global_static_ip_name }}
+    {% endif %}{% if laravel_ingress_class %}kubernetes.io/ingress.class: {{ laravel_ingress_class }}
+  {% endif %}labels:
+      app: laravel
 spec:
   rules:
   - host: {{ item }}

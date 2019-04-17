@@ -32,7 +32,7 @@ spec:
         {% for laravel_env in laravel_envs | map('regex_search', '^env_.*') | list %}{% if laravel_env %}- name: {{ laravel_env | regex_replace('^env_(.*)$', '\\1') | upper }}
           value: '{{ lookup('vars', laravel_env) }}'
         {% endif %}{% endfor %}image: {{ laravel_registry_uri }}:{{ laravel_registry_tag }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: {{ laravel_fpm_image_pull_policy }}
         ports:
           - containerPort: 9000
         resources: {}
