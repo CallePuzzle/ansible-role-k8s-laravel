@@ -41,6 +41,15 @@ env_app_name: Laravel
 env_app_key: null
 env_app_debug: false
 env_app_url: http://localhost
-env_log_level: info
+
+env_log_channel: stack
+
+env_db_connection: mysql
+env_db_host: 127.0.0.1
+env_db_port: 3306
+env_db_database: homestead
+env_db_username: homestead
+env_db_password: secret
+
 
 env_laravel_sites: '{{ laravel_sites | to_json }}'
