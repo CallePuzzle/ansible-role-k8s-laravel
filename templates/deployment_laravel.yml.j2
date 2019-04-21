@@ -22,12 +22,12 @@ spec:
       labels:
         app: laravel
     spec:
+      securityContext:
+        runAsUser: {{ laravel_user_id }}
+        fsGroup: {{ laravel_group_id }}
       automountServiceAccountToken: false
       containers:
       - name: laravel-fpm
-        securityContext:
-          runAsUser: {{ laravel_user_id }}
-          fsGroup: {{ laravel_group_id }}
         env:
         {% for laravel_env in laravel_envs | map('regex_search', '^env_.*') | list %}{% if laravel_env %}- name: {{ laravel_env | regex_replace('^env_(.*)$', '\\1') | upper }}
           value: '{{ lookup('vars', laravel_env) }}'
@@ -46,9 +46,6 @@ spec:
               command: ["/bin/sh", "-c", "cp -r /app/public/. /public-files/"]
         {% endif %}terminationMessagePolicy: File
       - name: laravel-nginx
-        securityContext:
-          runAsUser: {{ laravel_user_id }}
-          fsGroup: {{ laravel_group_id }}
         env:
         {% for laravel_env in laravel_envs | map('regex_search', '^env_.*') | list %}{% if laravel_env %}- name: {{ laravel_env | regex_replace('^env_(.*)$', '\\1') | upper }}
           value: '{{ lookup('vars', laravel_env) }}'
