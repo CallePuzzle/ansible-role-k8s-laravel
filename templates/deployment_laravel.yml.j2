@@ -22,17 +22,14 @@ spec:
       labels:
         app: laravel
     spec:
-      securityContext:
-        runAsUser: {{ laravel_user_id }}
-        fsGroup: {{ laravel_group_id }}
-      automountServiceAccountToken: false
       containers:
+      # Laravel
       - name: laravel-fpm
         env:
-        {% for laravel_env in laravel_envs | map('regex_search', '^env_.*') | list %}{% if laravel_env %} # if
+        {% for laravel_env in laravel_envs | map('regex_search', '^env_.*') | list %}{% if laravel_env %}{% set laravel_env_value = lookup('vars', laravel_env) %}{% if laravel_env_value  %} # if
         - name: {{ laravel_env | regex_replace('^env_(.*)$', '\\1') | upper }}
           value: '{{ lookup('vars', laravel_env) }}'
-        {% endif %}{% endfor %} # end
+        {% endif %}{% endif %}{% endfor %} # end
         image: {{ laravel_registry_uri }}:{{ laravel_registry_tag }}
         imagePullPolicy: {{ laravel_fpm_image_pull_policy }}
         ports:
@@ -49,12 +46,8 @@ spec:
               command: ["/bin/sh", "-c", "cp -r /app/public/. /public-files/"]
         {% endif %} # end
         terminationMessagePolicy: File
+      # Nginx
       - name: laravel-nginx
-        env:
-        {% for laravel_env in laravel_envs | map('regex_search', '^env_.*') | list %}{% if laravel_env %} # if
-        - name: {{ laravel_env | regex_replace('^env_(.*)$', '\\1') | upper }}
-          value: '{{ lookup('vars', laravel_env) }}'
-        {% endif %}{% endfor %} # end
         image: openresty/openresty:stretch
         imagePullPolicy: IfNotPresent
         ports:
@@ -62,7 +55,7 @@ spec:
           protocol: TCP
         resources: {}
         terminationMessagePath: /dev/termination-log
-        command: ["/usr/bin/openresty", "-c", "{{ laravel_nginx_root_path }}/nginx.conf"]
+        command: ["/usr/bin/openresty", "-c", "{{ laravel_nginx_root_path }}nginx.conf"]
         volumeMounts:
           - name: public-files
             mountPath: /app/public
@@ -76,6 +69,11 @@ spec:
             subPath: {{ laravel_nginx_config_map.file_name }}
           {% endfor %} # end
         terminationMessagePolicy: File
+      # end containers
+      securityContext:
+        runAsUser: {{ laravel_user_id }}
+        fsGroup: {{ laravel_group_id }}
+      automountServiceAccountToken: false
       volumes:
         {% for laravel_nginx_config_map in laravel_nginx_config_maps %} # if
         - name: {{ laravel_nginx_config_map.name }}
