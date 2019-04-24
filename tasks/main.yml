@@ -14,7 +14,6 @@
   k8s:
     namespace: "{{ namespace }}"
     state: present
-    force: "{{ laravel_force_replace }}"
     definition: "{{ lookup('template', item.template ) | from_yaml }}"
   loop: "{{ laravel_nginx_config_maps }}"
 

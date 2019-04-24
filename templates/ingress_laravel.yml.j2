@@ -3,11 +3,12 @@ kind: Ingress
 metadata:
   name: laravel-ingress
   namespace: {{ namespace }}
-  {% if laravel_ingress_global_static_ip_name or laravel_ingress_class%}annotations:
-    {%- if laravel_ingress_global_static_ip_name -%}kubernetes.io/ingress.global-static-ip-name: {{ laravel_ingress_global_static_ip_name }}{% endif %}
-    {%- if laravel_ingress_class -%}kubernetes.io/ingress.class: {{ laravel_ingress_class }}{% endif %}
-  # Necesario para el formateo
-  {% endif %}labels:
+  {% if laravel_ingress_global_static_ip_name or laravel_ingress_class%} # if
+  annotations:
+    {%- if laravel_ingress_global_static_ip_name -%}kubernetes.io/ingress.global-static-ip-name: {{ laravel_ingress_global_static_ip_name }} {% endif %}
+    {%- if laravel_ingress_class -%}kubernetes.io/ingress.class: {{ laravel_ingress_class }} {% endif %}
+  {% endif %} # endif
+  labels:
       app: laravel
 spec:
   rules:

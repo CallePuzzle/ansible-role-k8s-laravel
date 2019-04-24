@@ -20,6 +20,13 @@ laravel_nginx_config_maps:
     template: templates/configmap_nginx_laravel.yml.j2
 
 laravel_nginx_root_path: /openresty/
+laravel_nginx_temps:
+  - client-body-temp
+  - proxy-temp
+  - fastcgi-temp
+  - uwsgi-temp
+  - scgi-temp
+  - logs
 
 laravel_shared_public_files: true
 
@@ -50,6 +57,5 @@ env_db_port: 3306
 env_db_database: homestead
 env_db_username: homestead
 env_db_password: secret
-
 
 env_laravel_sites: '{{ laravel_sites | to_json }}'
